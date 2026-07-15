@@ -8,6 +8,7 @@ LINE Notifyは2025年3月31日に終了済みのため、このデモではLINE�
 
 ```env
 LINE_CHANNEL_ACCESS_TOKEN=LINE Developersで発行したMessaging APIのチャネルアクセストークン
+LINE_CHANNEL_SECRET=LINE DevelopersのMessaging APIチャネルシークレット
 LINE_TO_USER_ID=通知を受け取るLINEユーザーID
 ```
 
@@ -18,9 +19,21 @@ LINE_TO_USER_ID=通知を受け取るLINEユーザーID
 1. LINE DevelopersでMessaging APIチャネルを作成します。
 2. チャネルアクセストークンを発行します。
 3. 通知先ユーザーがLINE公式アカウントを友だち追加します。
-4. LINE Developers ConsoleのBasic settingsで自分のUser IDを確認し、`LINE_TO_USER_ID` に設定します。
-5. デプロイ先の環境変数に `LINE_CHANNEL_ACCESS_TOKEN` と `LINE_TO_USER_ID` を登録します。
-6. 予約パネルの「LINEで通知」ボタンから送信を確認します。
+4. デプロイ先の環境変数に `LINE_CHANNEL_ACCESS_TOKEN` と `LINE_CHANNEL_SECRET` を登録します。
+5. LINE Developers ConsoleのWebhook URLに `https://あなたのドメイン/api/line-webhook` を設定します。
+6. LINE公式アカウントへ自分のLINEからメッセージを送ります。
+7. VercelのFunctionログ、またはWebhookレスポンスに出る `userId` を `LINE_TO_USER_ID` に設定します。
+8. 予約パネルの「LINEで通知」ボタンから送信を確認します。
+
+## User ID確認用Webhook
+
+`api/line-webhook.js` は、LINEから届いたイベントの `source.userId` をログに出します。`LINE_CHANNEL_SECRET` を設定している場合は、LINE署名も検証します。
+
+Webhook URL:
+
+```text
+https://あなたのドメイン/api/line-webhook
+```
 
 ## 送信内容
 

@@ -17,7 +17,15 @@ LINE Notifyは終了済みのため、`api/line-notify.js` でLINE Messaging API
 
 ```env
 LINE_CHANNEL_ACCESS_TOKEN=
+LINE_CHANNEL_SECRET=
 LINE_TO_USER_ID=
 ```
 
 詳しくは [LINE_SETUP.md](./LINE_SETUP.md) を参照してください。
+
+## デプロイ
+
+Vercelに接続すると、静的ページと `api/` 配下のServerless Functionをそのまま利用できます。
+
+- 通知送信: `/api/line-notify`
+- LINE Webhook確認: `/api/line-webhook`
