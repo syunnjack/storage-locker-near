@@ -50,6 +50,18 @@ php artisan test
 npm run build
 ```
 
+## 本番デプロイ（GitHub Actions）
+
+`main` への push で [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) が実行されます。
+
+事前に以下の Repository Secrets を設定してください。
+
+- APP_KEY
+- SSH_HOST
+- SSH_USERNAME
+- SSH_PRIVATE_KEY
+- DEPLOY_PATH
+
 ## LINE通知の設定
 
 必要な環境変数:

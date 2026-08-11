@@ -26,8 +26,27 @@ jobs:
 
       - name: Build frontend assets
         run: |
-          npm install
+          npm ci
           npm run build
+
+      - name: Validate deployment secrets
+        env:
+          APP_KEY: ${{ secrets.APP_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          missing=()
+          [ -z "$APP_KEY" ] && missing+=("APP_KEY")
+          [ -z "$SSH_HOST" ] && missing+=("SSH_HOST")
+          [ -z "$SSH_USERNAME" ] && missing+=("SSH_USERNAME")
+          [ -z "$SSH_PRIVATE_KEY" ] && missing+=("SSH_PRIVATE_KEY")
+          [ -z "$DEPLOY_PATH" ] && missing+=("DEPLOY_PATH")
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Missing repository secrets: ${missing[*]}"
+            exit 1
+          fi
 
       - name: Write production .env
         run: |
