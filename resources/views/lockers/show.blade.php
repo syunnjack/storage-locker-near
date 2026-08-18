@@ -70,7 +70,12 @@
         @if ($isWatching)
           <button type="submit" class="btn btn-outline-secondary">🔕 通知をやめる</button>
         @else
+          {{-- LINEの認証情報が未設定のうちは、押すとLINE側でエラーになるので出さない --}}
+          @if (config('services.line.login_channel_id'))
           <button type="submit" class="btn btn-line">🔔 空きありの報告が投稿されたらLINEで通知</button>
+          @else
+            <button type="button" class="btn btn-secondary" disabled>🔔 空きありの報告が投稿されたらLINEで通知（準備中）</button>
+          @endif
         @endif
       </form>
 
