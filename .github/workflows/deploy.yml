@@ -31,14 +31,12 @@ jobs:
 
       - name: Validate deployment secrets
         env:
-          APP_KEY: ${{ secrets.APP_KEY }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           missing=()
-          [ -z "$APP_KEY" ] && missing+=("APP_KEY")
           [ -z "$SSH_HOST" ] && missing+=("SSH_HOST")
           [ -z "$SSH_USERNAME" ] && missing+=("SSH_USERNAME")
           [ -z "$SSH_PRIVATE_KEY" ] && missing+=("SSH_PRIVATE_KEY")
@@ -48,28 +46,13 @@ jobs:
             exit 1
           fi
 
-      - name: Write production .env
-        run: |
-          cat > .env <<EOF
-          APP_NAME="コインロッカーナビ"
-          APP_ENV=production
-          APP_KEY=${{ secrets.APP_KEY }}
-          APP_DEBUG=false
-          APP_URL=https://storage-locker-near.jp
-          APP_LOCALE=ja
-          APP_FALLBACK_LOCALE=ja
-          DB_CONNECTION=sqlite
-          LOG_CHANNEL=stack
-          LOG_LEVEL=error
-          CACHE_STORE=file
-          SESSION_DRIVER=file
-          QUEUE_CONNECTION=sync
-          EOF
-
+      # .env は本番のものを残す。以前はここで .env を作り直していたが、
+      # APP_NAME と APP_URL に別サイトの値が入っており、さらに GA4 と LINE の
+      # 設定を消してしまう内容だった。値を変えるときはサーバ上で該当行だけ直す。
       - name: Deploy app via rsync over SSH
         uses: burnett01/rsync-deployments@7.0.1
         with:
-          switches: -avzr --delete --exclude=".git" --exclude=".github" --exclude="node_modules" --exclude="tests" --exclude="database/database.sqlite" --exclude="storage/app" --exclude="storage/logs" --exclude="storage/framework"
+          switches: -avzr --delete --exclude=".git" --exclude=".github" --exclude="node_modules" --exclude="tests" --exclude=".env" --exclude="database/database.sqlite" --exclude="storage/app" --exclude="storage/logs" --exclude="storage/framework"
           path: ./
           remote_path: ${{ secrets.DEPLOY_PATH }}
           remote_host: ${{ secrets.SSH_HOST }}
@@ -87,7 +70,11 @@ jobs:
           script: |
             set -e
             cd "${{ secrets.DEPLOY_PATH }}"
-            PHP=/opt/php-8.3.30/bin/php
+            # SSH の既定の php は 8.0 で composer.json の要求に足りない。
+            # 版番号を直接書くとサーバ更新で消えるので、8.3 系を探して使う。
+            PHP=$(ls -d /opt/php-8.3* 2>/dev/null | tail -1)/bin/php
+            [ -x "$PHP" ] || { echo "PHP 8.3 系が見つかりません"; exit 1; }
+            echo "php: $($PHP -v | head -1)"
             mkdir -p database storage/framework/cache storage/framework/sessions storage/framework/views storage/logs storage/app
             touch database/database.sqlite
             chmod -R 775 storage database
